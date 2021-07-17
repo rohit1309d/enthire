@@ -50,6 +50,8 @@ import { JSONExportDialog } from "./JSONExportDialog";
 import { LibraryButton } from "./LibraryButton";
 import { isImageFileHandle } from "../data/blob";
 import { ButtonExportToServer } from "./ButtonExportToServer";
+import { exportCanvasServer } from "../data/exportToServer"
+import axios from 'axios';
 
 interface LayerUIProps {
   actionManager: ActionManager;
@@ -406,19 +408,30 @@ const LayerUI = ({
       return null;
     }
 
-    const createExporter = (type: ExportType): ExportCB => async (
+    const createExporter = (): ExportCB => async (
       exportedElements,
     ) => {
-      await exportCanvas(type, exportedElements, appState, {
-        exportBackground: appState.exportBackground,
-        name: appState.name,
-        viewBackgroundColor: appState.viewBackgroundColor,
-      })
-        .catch(muteFSAbortError)
-        .catch((error) => {
-          console.error(error);
-          setAppState({ errorMessage: error.message });
+      if(window.confirm("Are you sure? This will save to server and clean the canvas")){
+        const blob = await exportCanvasServer(exportedElements, appState, {
+          exportBackground: appState.exportBackground,
+          name: appState.name,
+          viewBackgroundColor: appState.viewBackgroundColor,
         });
+  
+      
+      const formData = new FormData() 
+      formData.append('file', blob);
+      axios.post("http://localhost:8000/upload", formData, { headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+        })
+        .then(res => {
+          console.log(res.status)
+          if(res.status == 200){
+            window.alert("Canvas saved to server!!")
+          }
+        })
+      }      
     };
 
     return (
@@ -426,9 +439,10 @@ const LayerUI = ({
         elements={elements}
         appState={appState}
         actionManager={actionManager}
+        exportToServer={createExporter()}
       />
     );
-  }
+  };
 
   const renderImageExportDialog = () => {
     if (!UIOptions.canvasActions.saveAsImage) {
