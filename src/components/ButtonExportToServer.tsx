@@ -22,7 +22,6 @@ export const ButtonExportToServer = ({
   actionManager: ActionsManagerInterface;
   exportToServer: ExportCB;
 }) => {
-  
   return (
     <>
       <ToolButton
