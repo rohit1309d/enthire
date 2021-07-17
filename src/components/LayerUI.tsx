@@ -423,7 +423,7 @@ const LayerUI = ({
         const formData = new FormData();
         formData.append("file", blob);
         axios
-          .post("http://localhost:8000/upload", formData, {
+          .post("https://api-seven-delta.vercel.app/upload", formData, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
